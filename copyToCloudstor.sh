@@ -49,7 +49,6 @@ while [[ $# -gt 0 ]]; do
 	    	;;
 	    --pull)
 			PULL=1
-			CHECK=0
 				shift
 			;;
     	*)    # unknown option
@@ -121,6 +120,14 @@ else
 		rclone copy --progress --no-check-dest --no-traverse ${rcloneoptions} "${1}" "${2}"
 		echo "Done with run ${counter} at $(date)"
 		counter=$((counter+1))
+	fi
+	if [ ${CHECK} -eq 1 ]; then
+		while ! rclone check --one-way ${SHOWDIFF} ${rcloneoptions} "${1}" "${2}" 2>&1 | tee /dev/stderr | grep ': 0 differences found'; do
+			echo "Starting run ${counter} at $(date)"
+			rclone copy --progress "${rcloneoptions}" "${1}" "${2}"
+			echo "Done with run ${counter} at $(date)"
+			counter=$((counter+1))
+		done
 	fi
 fi
 
